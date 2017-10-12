@@ -1,5 +1,7 @@
 package com.gl.extrade.spec.dto;
 
+import com.gl.extrade.common.dto.DTO;
+
 public class TradeRequest extends DTO {
     /**
      * 

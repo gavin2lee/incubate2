@@ -1,5 +1,7 @@
 package com.gl.extrade.spec.dto;
 
+import com.gl.extrade.common.dto.DTO;
+
 public abstract class Response extends DTO {
 
     public static interface RetCode {
