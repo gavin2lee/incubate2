@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.gl.incubate2.extrade</groupId>
-  <artifactId>extrade</artifactId>
+  <artifactId>extrade-all</artifactId>
   <version>1.0.0.0-SNAPSHOT</version>
 
   <name>Dubbo enhanced extrade</name>
