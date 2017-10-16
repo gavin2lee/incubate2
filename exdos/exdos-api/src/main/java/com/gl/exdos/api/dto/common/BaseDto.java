@@ -1,18 +1,25 @@
-package com.gl.extrade.common.util;
+package com.gl.exdos.api.dto.common;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.Map;
 
-public final class ReflectionUtil {
-	private ReflectionUtil() {
+public class BaseDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6223368416563447931L;
+
+	@Override
+	public String toString() {
+		return toString(this.getClass(), this);
 	}
 
-	public static String toString(Class<?> clazz, Object target) {
+	protected String toString(Class<?> clazz, Object target) {
 		if (clazz == null || target == null) {
 			throw new RuntimeException();
 		}
@@ -20,78 +27,16 @@ public final class ReflectionUtil {
 		Class<?> clz = clazz;
 
 		StringBuilder sb = new StringBuilder();
-		while (clz != null && clz != Object.class) {
+		while (clz != null && clz != Object.class && clz != BaseDto.class) {
 
 			sb.append(toString0(clz, target));
 			clz = clz.getSuperclass();
 		}
 		return sb.toString();
 	}
-	
-	public static String toString0(List<?> list){
-		if(list == null){
-			return "null";
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("list[");
-		boolean first = true;
-		for(Object o : list){
-			if(first){
-				first =false;
-			}else{
-				sb.append(",");
-			}
-			if(o == null){
-				sb.append("null");
-			}
-			sb.append(toString0(o.getClass(), o));
-		}
-		sb.append("]");
-		
-		return sb.toString();
-	}
 
 	// Foo[name=123,pass=123]
-	public static String toString0(Class<?> clazz, Object target) {
-		if (clazz.isPrimitive()) {
-			return String.valueOf(target);
-		}
-		if (clazz == String.class) {
-			return (String) target;
-		}
-		if(clazz == Integer.class){
-			return String.valueOf(target);
-		}
-		
-		if(clazz == Double.class){
-			return String.valueOf(target);
-		}
-		if (clazz.isArray()) {
-			Class<?> componentType = clazz.getComponentType();
-			StringBuilder interSb = new StringBuilder();
-			int size = Array.getLength(target);
-			interSb.append("[");
-			for (int i = 0; i < size; i++) {
-				if (i > 0) {
-					interSb.append(",");
-				}
-				interSb.append(toString0(componentType, Array.get(target, i)));
-			}
-			interSb.append("]");
-
-			return interSb.toString();
-		}
-
-		if (List.class.isAssignableFrom(clazz)) {
-			return toString0( (List<?>)target);
-		}
-
-		if (Map.class.isAssignableFrom(clazz)) {
-			throw new UnsupportedOperationException();
-		}
-
+	protected String toString0(Class<?> clazz, Object target) {
 		StringBuilder sb = new StringBuilder();
 		String simpleClassName = clazz.getSimpleName();
 		sb.append(simpleClassName);
@@ -118,7 +63,7 @@ public final class ReflectionUtil {
 					continue;
 				}
 
-				Class<?> fCls = f.getType();
+				Class<?> fCls = f.getClass();
 				if (fCls.isPrimitive()) {
 					fieldString = String.valueOf(fieldValue);
 				} else if (fCls.isArray()) {
@@ -126,15 +71,11 @@ public final class ReflectionUtil {
 					StringBuilder interSb = new StringBuilder();
 					int size = Array.getLength(fieldValue);
 					interSb.append("[");
-					for (int i = 0; i < size; i++) {
-						if (i > 0) {
-							interSb.append(",");
-						}
+					for(int i = 0; i < size; i++){
 						interSb.append(toString0(componentType, Array.get(fieldValue, i)));
-
 					}
 					interSb.append("]");
-
+					
 					fieldString = interSb.toString();
 				} else {
 					if (fieldValue != null) {
@@ -143,6 +84,7 @@ public final class ReflectionUtil {
 						fieldString = "null";
 					}
 				}
+
 			} catch (NoSuchMethodException e) {
 				throw new RuntimeException(e);
 			} catch (SecurityException e) {
@@ -173,4 +115,5 @@ public final class ReflectionUtil {
 		sb.append("]");
 		return sb.toString();
 	}
+
 }

@@ -1,5 +1,8 @@
 package com.gl.extrade.common.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
 import com.gl.extrade.common.dto.DTO;
@@ -16,6 +19,12 @@ public class ReflectionUtilTest {
         private String productCode;
         private String productName;
         private long createdTimeMillis;
+        
+        private int age;
+        
+        private String [] names;
+        
+        private int [] ages;
 
         public String getTradeId() {
             return tradeId;
@@ -56,6 +65,32 @@ public class ReflectionUtilTest {
         public void setCreatedTimeMillis(long createdTimeMillis) {
             this.createdTimeMillis = createdTimeMillis;
         }
+
+		public int getAge() {
+			return age;
+		}
+
+		public void setAge(int age) {
+			this.age = age;
+		}
+
+		public String[] getNames() {
+			return names;
+		}
+
+		public void setNames(String[] names) {
+			this.names = names;
+		}
+
+		public int[] getAges() {
+			return ages;
+		}
+
+		public void setAges(int[] ages) {
+			this.ages = ages;
+		}
+        
+        
     }
 
     @Test
@@ -66,6 +101,10 @@ public class ReflectionUtilTest {
         
         req.setProductCode("000000");
         req.setCreatedTimeMillis(System.currentTimeMillis());
+        
+        req.setAge(100);
+        req.setAges(new int[]{100,200,300});
+        req.setNames(new String[]{"aaa","bbb"});
         
         System.out.println(req.toString());
     }
@@ -79,7 +118,27 @@ public class ReflectionUtilTest {
         req.setProductCode("000000");
         req.setCreatedTimeMillis(System.currentTimeMillis());
         
+        req.setAge(100);
+        req.setAges(new int[]{100,200,300});
+        req.setNames(new String[]{"aaa","bbb"});
+        
         System.out.println(ReflectionUtil.toString0(req.getClass(), req));
+    }
+    
+    @Test
+    public void testToString0List() {
+    	
+    	List<Integer> nums = new ArrayList<Integer>(){
+    		{
+    			add(1);
+    			add(2);
+    			add(3);
+    			add(4);
+    			add(5);
+    		}
+    	};
+    	
+    	System.out.println(ReflectionUtil.toString0(nums.getClass(), nums));
     }
 
 }
