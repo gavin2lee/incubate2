@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="exdos" default="info">
+  <tstamp>
+    <format property="buildTime" pattern="yyyyMMddhhmm" />
+  </tstamp>
+
+  <property name="projectDir" location="." />
+  <property name="buildDir" location="${projectDir}/build" />
+
+  <property name="releaseVersion" value="v1.0" />
+
+
+  <path id="project-path">
+    <fileset dir="${buildDir}/lib">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <target name="init">
+    <mkdir dir="" />
+    <delete includeemptydirs="true">
+      <fileset dir="" includes="**/*" />
+    </delete>
+
+    <condition property="pre-condition-init">
+      <istrue value="true" />
+    </condition>
+  </target>
+
+  <target name="info">
+    <echoproperties />
+  </target>
+
+
+   <target name="compile" if="pre-condition-init" depends="init">
+     <mkdir dir="" />
+
+     <javac
+       debug="true"
+       destdir=""
+       includes="**/*"
+       encoding="utf-8"
+       source="1.8"
+       target="1.8"
+       memorymaximumsize="500M"
+       fork="true"
+       optimize="true"
+       includeAntRuntime="false">
+       <src path="" />
+       <compilearg line="-Xlint:unchecked -Xlint:deprecation" />
+       <classpath refid="path" />
+     </javac>
+
+      <copy todir="">
+        <fileset dir="" excludes="**/*.class,**/*.java">
+          <include name="**/*" />
+        </fileset>
+      </copy>
+   </target>
+
+   <target name="package" depends="compile">
+     <jar jarfile="">
+       <fileset dir="/classes" excludes="**/*Test.class" />
+
+
+       <manifest>
+        <attribute name="Version" value="" />
+        <attribute name="Built-JDK" value="${java.version}" />
+        <section name="com/gl/order">
+          <attribute name="Specification-Title" value="${ant.project.name}"/>
+          <attribute name="Specification-Version" value=""/>
+          <attribute name="Specification-Vendor" value="" />
+
+
+        </section>
+      </manifest>
+
+
+     </jar>
+   </target>
+
+   <target name="assemble-prod" depends="package">
+     <copy todir="">
+
+     </copy>
+
+     <zip destfile="aa.zip" basedir="" />
+   </target>
+
+
+   <target name="deploy">
+
+
+     <scp file="aa.zip" todir="root:aaaa@10.99.22.22:/root/fff/sfs" trust="true" />
+   </target>
+
+</project>
