@@ -1,6 +1,6 @@
 package com.gl.exdos.api.exception;
 
-public class RpcException extends Exception {
+public class CommonRpcException extends Exception {
 
     public static interface ErrCode {
         String SYSTEM_ERR = "SE0000";
@@ -14,22 +14,22 @@ public class RpcException extends Exception {
 
     private String errCode;
 
-    public RpcException(String errCode) {
+    public CommonRpcException(String errCode) {
         super();
         this.errCode = errCode;
     }
 
-    public RpcException(String errCode, String message, Throwable cause) {
+    public CommonRpcException(String errCode, String message, Throwable cause) {
         super(message, cause);
         this.errCode = errCode;
     }
 
-    public RpcException(String errCode, String message) {
+    public CommonRpcException(String errCode, String message) {
         super(message);
         this.errCode = errCode;
     }
 
-    public RpcException(String errCode, Throwable cause) {
+    public CommonRpcException(String errCode, Throwable cause) {
         super(cause);
         this.errCode = errCode;
     }
