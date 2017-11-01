@@ -29,14 +29,20 @@ public class JedisTests {
 
 	static JedisSentinelPool sentinelPool;
 
+	static String host = "192.168.0.107";
+	static String sentinelPortA = "6410";
+	static String sentinelPortB = "6420";
+
+	static String authCredential = "123456";
+
 	Jedis jedis;
 
 	@BeforeClass
 	public static void init() {
 		Set<String> sentinels = new HashSet<String>();
-		sentinels.add("127.0.0.1:6410");
-		sentinels.add("127.0.0.1:6420");
-		sentinelPool = new JedisSentinelPool("master01", sentinels, "123456");
+		sentinels.add(String.format("%s:%s", host, sentinelPortA));
+		sentinels.add(String.format("%s:%s", host, sentinelPortB));
+		sentinelPool = new JedisSentinelPool("master01", sentinels, authCredential);
 		System.out.println("set up sentinel pool");
 		System.out.println("before class");
 	}
@@ -51,7 +57,11 @@ public class JedisTests {
 	@Before
 	public void setUp() {
 		System.out.println("setup");
-		jedis = sentinelPool.getResource();
+		try {
+			jedis = sentinelPool.getResource();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@After
@@ -63,7 +73,7 @@ public class JedisTests {
 	@Test
 	public void testString() {
 		int maxSize = 10000;
-		
+
 		for (int i = 0; i < maxSize; i++) {
 			String key = createObjectKey((long) i, User.class);
 			jedis.del(key);
@@ -72,7 +82,7 @@ public class JedisTests {
 			assertThat("exists is false", exists, is(false));
 
 		}
-		
+
 		for (int i = 0; i < maxSize; i++) {
 			String name = "test" + i;
 			String psword = String.valueOf(System.currentTimeMillis());
@@ -115,7 +125,7 @@ public class JedisTests {
 	@Test
 	public void testStringExpire() {
 		int maxSize = 10000;
-		
+
 		for (int i = 0; i < maxSize; i++) {
 			String key = createObjectKey((long) i, User.class);
 			jedis.del(key);
@@ -124,7 +134,7 @@ public class JedisTests {
 			assertThat("exists is false", exists, is(false));
 
 		}
-		
+
 		for (int i = 0; i < maxSize; i++) {
 			String name = "test" + i;
 			String psword = String.valueOf(System.currentTimeMillis());
@@ -318,37 +328,37 @@ public class JedisTests {
 	public void testHash() {
 		long maxSize = 10000;
 		for (long i = 0; i < maxSize; i++) {
-			User u = new User(i,"hash"+i, String.valueOf(System.currentTimeMillis()));
-			
+			User u = new User(i, "hash" + i, String.valueOf(System.currentTimeMillis()));
+
 			String key = createHashKey(u);
-					
+
 			jedis.hmset(key, convertObjToStringMap(u));
 		}
-		
-		for(long i = 0; i < maxSize; i++){
+
+		for (long i = 0; i < maxSize; i++) {
 			String key = createHashKey(i, User.class);
 			long ret = jedis.del(key);
-			
+
 			assertThat("ret equals to 1", ret, equalTo(1L));
 		}
 	}
-	
+
 	@Test
-	public void testHashAndStringWhenKeyConfliction(){
+	public void testHashAndStringWhenKeyConfliction() {
 		long oid = 100;
-		User u = new User(oid,"user"+oid, String.valueOf(System.currentTimeMillis()));
+		User u = new User(oid, "user" + oid, String.valueOf(System.currentTimeMillis()));
 		String uJson = JsonUtils.toJsonString(u);
-		
-		Map<String,String> hashVal = convertObjToStringMap(u);
-		
+
+		Map<String, String> hashVal = convertObjToStringMap(u);
+
 		String strKey = createObjectKey(u);
 		String hashKey = createHashKey(u);
-		
+
 		assertThat("strKey equals to hashKey", strKey, not(equalTo(hashKey)));
-		
+
 		jedis.set(strKey, uJson);
 		jedis.hmset(hashKey, hashVal);
-		
+
 	}
 
 	@Test
@@ -402,20 +412,19 @@ public class JedisTests {
 	}
 
 	private String createHashKey(User user) {
-		return "hash:"+User.class.getSimpleName() + ":" + user.getOid();
+		return "hash:" + User.class.getSimpleName() + ":" + user.getOid();
 	}
-	
-	
-	private String createHashKey(long  oid,Class<?> clz){
-		return "hash:"+clz.getSimpleName()+":"+oid;
+
+	private String createHashKey(long oid, Class<?> clz) {
+		return "hash:" + clz.getSimpleName() + ":" + oid;
 	}
-	
-	private Map<String,String> convertObjToStringMap(User u){
-		Map<String,String> objMap = new HashMap<String,String>();
+
+	private Map<String, String> convertObjToStringMap(User u) {
+		Map<String, String> objMap = new HashMap<String, String>();
 		objMap.put("oid", String.valueOf(u.getOid()));
 		objMap.put("uname", u.getUname());
 		objMap.put("psword", u.getPsword());
-		
+
 		return objMap;
 	}
 }
