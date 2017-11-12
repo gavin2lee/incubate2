@@ -2,8 +2,9 @@ package com.gl.extrade.common.redis;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import com.gl.extrade.common.util.JsonUtils;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.Tuple;
@@ -29,20 +31,33 @@ public class JedisTests {
 
 	static JedisSentinelPool sentinelPool;
 
-	static String host = "192.168.0.107";
+	static String host = "192.168.0.104";
 	static String sentinelPortA = "6410";
 	static String sentinelPortB = "6420";
 
 	static String authCredential = "123456";
+	
+	static int DEFAULT_MAX_SIZE = 10000;
 
 	Jedis jedis;
 
 	@BeforeClass
 	public static void init() {
+		
+		JedisPoolConfig config = new JedisPoolConfig();
+		config.setMaxIdle(10);
+		config.setMinIdle(1);
+		config.setMaxWaitMillis(30000);
+		config.setTestOnBorrow(true);
+		config.setTestOnCreate(true);
+		config.setTestOnReturn(true);
+		config.setTestWhileIdle(true);
+		
+		config.setMaxTotal(1000);
 		Set<String> sentinels = new HashSet<String>();
 		sentinels.add(String.format("%s:%s", host, sentinelPortA));
 		sentinels.add(String.format("%s:%s", host, sentinelPortB));
-		sentinelPool = new JedisSentinelPool("master01", sentinels, authCredential);
+		sentinelPool = new JedisSentinelPool("master01", sentinels, config, 6000,authCredential);
 		System.out.println("set up sentinel pool");
 		System.out.println("before class");
 	}
@@ -59,6 +74,17 @@ public class JedisTests {
 		System.out.println("setup");
 		try {
 			jedis = sentinelPool.getResource();
+
+			jedis.auth(authCredential);
+
+			System.out.println("jedis="+jedis.toString());
+			
+			System.out.println("to remove all keys");
+			
+			String retCode = jedis.flushAll();
+
+
+			System.out.println("retCode="+retCode);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -72,7 +98,7 @@ public class JedisTests {
 
 	@Test
 	public void testString() {
-		int maxSize = 10000;
+		int maxSize = DEFAULT_MAX_SIZE;
 
 		for (int i = 0; i < maxSize; i++) {
 			String key = createObjectKey((long) i, User.class);
@@ -124,7 +150,7 @@ public class JedisTests {
 
 	@Test
 	public void testStringExpire() {
-		int maxSize = 10000;
+		int maxSize = DEFAULT_MAX_SIZE;
 
 		for (int i = 0; i < maxSize; i++) {
 			String key = createObjectKey((long) i, User.class);
@@ -179,7 +205,7 @@ public class JedisTests {
 			ret = jedis.rpop(listKey);
 		} while (ret != null);
 
-		int maxSize = 100000;
+		int maxSize = DEFAULT_MAX_SIZE;
 
 		for (int i = 0; i < maxSize; i++) {
 			User u = new User((long) i, "test-" + i, String.valueOf(System.currentTimeMillis()));
@@ -207,7 +233,7 @@ public class JedisTests {
 
 	@Test
 	public void testSet() {
-		long maxSize = 100000;
+		long maxSize = DEFAULT_MAX_SIZE;
 
 		String key = createSetKey(User.class);
 
@@ -247,7 +273,7 @@ public class JedisTests {
 
 	@Test
 	public void testSortedSet() {
-		long maxSize = 100000;
+		long maxSize = DEFAULT_MAX_SIZE;
 
 		String key = createSortedSetKey(User.class);
 
@@ -326,7 +352,7 @@ public class JedisTests {
 
 	@Test
 	public void testHash() {
-		long maxSize = 10000;
+		long maxSize = DEFAULT_MAX_SIZE;
 		for (long i = 0; i < maxSize; i++) {
 			User u = new User(i, "hash" + i, String.valueOf(System.currentTimeMillis()));
 
@@ -345,7 +371,7 @@ public class JedisTests {
 
 	@Test
 	public void testHashAndStringWhenKeyConfliction() {
-		long oid = 100;
+		long oid = DEFAULT_MAX_SIZE;
 		User u = new User(oid, "user" + oid, String.valueOf(System.currentTimeMillis()));
 		String uJson = JsonUtils.toJsonString(u);
 
@@ -363,31 +389,23 @@ public class JedisTests {
 
 	@Test
 	public void testJedis() {
-		Jedis jedis = sentinelPool.getResource();
-
 		User user = new User("abc", "123");
-		String key = "user123";
+		String key = "User:123";
 
-		long lenBefore = jedis.llen(key);
+		long ret = jedis.del(key);
+		
+		System.out.println("delete result:"+ret);
 
 		String json = JsonUtils.toJsonString(user);
 		System.out.println("json:" + json);
 
-		long ret = jedis.lpushx(key, json);
+		String retSet = jedis.set(key, json);
 
-		System.out.println("ret : " + ret);
+		System.out.println("ret : " + retSet);
 
-		long lenAfter = jedis.llen(key);
+		retSet = jedis.get(key);
 
-		Assert.assertEquals("compare length", lenBefore + 1, lenAfter);
-
-		String retJson = jedis.lindex(key, 0);
-
-		Assert.assertNotNull("returned json should not be null", retJson);
-
-		User retUser = JsonUtils.toObject(retJson, User.class);
-
-		System.out.println("retUser:" + retUser);
+		Assert.assertNotNull(retSet);
 
 	}
 
