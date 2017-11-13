@@ -18,5 +18,5 @@ done
 
 if [ "stop" = "$1" ];then
 	echo "to shutdown mongodb via shell script"
-	sudo $MONGOD_EXEC --config $MONGODB_CONFIG --shutdown
+	$MONGOD_EXEC --config $MONGODB_CONFIG --shutdown
 fi
