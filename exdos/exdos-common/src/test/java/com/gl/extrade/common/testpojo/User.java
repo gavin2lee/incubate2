@@ -1,4 +1,4 @@
-package com.gl.extrade.common.redis;
+package com.gl.extrade.common.testpojo;
 
 public class User {
 	private Long oid;

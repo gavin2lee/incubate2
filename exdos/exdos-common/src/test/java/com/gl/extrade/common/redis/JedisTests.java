@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.gl.extrade.common.testpojo.User;
 import com.gl.extrade.common.util.JsonUtils;
 
 import redis.clients.jedis.Jedis;
